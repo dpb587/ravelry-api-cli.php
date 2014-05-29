@@ -9,7 +9,7 @@ Consider this a functional prototype. This CLI's API may change. Not all the API
 
 It's easiest to download a pre-compiled [PHAR](http://php.net/phar) from the [releases](https://github.com/dpb587/ravelry-api-php-cli/releases) page...
 
-    wget -qO ravelry-api https://github.com/dpb587/ravelry-api-php-cli/releases/download/v0.1.0/ravelry-api.phar
+    wget -qO ravelry-api https://github.com/dpb587/ravelry-api-php-cli/releases/download/v0.0.0/ravelry-api.phar
     chmod +x ravelry-api
     ./ravelry-api current-user
 
@@ -128,22 +128,32 @@ Or add yourself some stash and upload a photo along with it...
 
     $ ./ravelry-api upload:request-token
     {
-        "upload_token": "1977437-ba67c0a9a7bfbee9785f047c2d73a53a"
+        "upload_token": "1978216-f19e7fe5a99ac4fba940d8c36c11c565"
     }
 
-    $ ./ravelry-api upload:image --upload-token 1977437-ba67c0a9a7bfbee9785f047c2d73a53a \
+    $ ./ravelry-api upload:image --upload-token 1978216-f19e7fe5a99ac4fba940d8c36c11c565 \
         --file0 ~/Desktop/c01c550d-ceaa-11d7-d871-6eff22837f68~v2-210x210.jpg
     {
         "uploads": {
             "file0": {
-                "image_id": 29165241
+                "image_id": 29178529
             }
         }
     }
 
-    $ ./ravelry-api stash:create-photo --username "$RAVELRY_USER" --id 10382615 --image-id 29165241
+    $ ./ravelry-api stash:create-photo --username "$RAVELRY_USER" --id 10382615 --image-id 29178529
     {
-        "status_token": "job:e745287900a4ee5f7aea0d83a439886d:1401315576"
+        "status_token": "job:ac725746ebfdf29a03b3b62bb86e2da0:1401376888"
+    }
+
+    $ ./ravelry-api photos:status --status-token job:ac725746ebfdf29a03b3b62bb86e2da0:1401376888
+    {
+        "complete": true,
+        "progress": 100,
+        "failed": false,
+        "photo": {
+            ...snip...
+        }
     }
 
 
