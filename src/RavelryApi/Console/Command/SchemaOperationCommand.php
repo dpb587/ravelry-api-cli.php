@@ -22,6 +22,22 @@ class SchemaOperationCommand extends Command
         parent::__construct(str_replace('_', ':', $name));
     }
 
+    private function getInputDescription(array $parameter, $suffix = [])
+    {
+        if (!empty($parameter['required'])) {
+            $suffix[] = 'required';
+        }
+
+        if ((!empty($parameter['location'])) && ('postFile' == $parameter['location'])) {
+            $suffix[] = 'file path';
+        }
+
+        return isset($parameter['description'])
+            ? ($parameter['description'] . ($suffix ? (' [' . implode(', ', $suffix) . ']') : ''))
+            : implode(', ', $suffix)
+            ;
+    }
+
     private function delveDefinitionProperties(array $properties, $context = '')
     {
         $definition = [];
@@ -34,7 +50,7 @@ class SchemaOperationCommand extends Command
                     $cliName,
                     null,
                     InputOption::VALUE_NONE,
-                    isset($parameter['description']) ? $parameter['description'] : null
+                    $this->getInputDescription($parameter)
                 );
             } elseif (!empty($parameter['static'])) {
                 continue;
@@ -44,21 +60,11 @@ class SchemaOperationCommand extends Command
                     $this->delveDefinitionProperties($parameter['properties'], $parameterName . ':')
                 );
             } else {
-                $suffix = [];
-
-                if (!empty($parameter['required'])) {
-                    $suffix[] = 'required';
-                }
-
-                if ((!empty($parameter['location'])) && ('postFile' == $parameter['location'])) {
-                    $suffix[] = 'file path';
-                }
-
                 $definition[$cliName] = new InputOption(
                     $cliName,
                     null,
                     InputOption::VALUE_REQUIRED,
-                    isset($parameter['description']) ? ($parameter['description'] . ($suffix ? (' [' . implode(', ', $suffix) . ']') : '')) : implode(', ', $suffix)
+                    $this->getInputDescription($parameter)
                 );
             }
         }
@@ -87,7 +93,14 @@ class SchemaOperationCommand extends Command
             } else {
                 $value = $input->getOption(str_replace('_', '-', $context . $parameterName));
 
-                if (null !== $value) {
+                if (is_array($value)) {
+                    // this assumes the only possible way to have an array is through the additionalParameters method
+                    foreach ($value as $value2) {
+                        list($vn, $vk) = explode('=', $value2, 2);
+
+                        $parsed[$vn] = $vk;
+                    }
+                } elseif (null !== $value) {
                     if ('integer' == $parameter['type']) {
                         $value = (int) $value;
                     } elseif ('boolean' == $parameter['type']) {
@@ -108,6 +121,15 @@ class SchemaOperationCommand extends Command
 
         if (isset($this->operation['parameters'])) {
             $definition = $this->delveDefinitionProperties($this->operation['parameters']);
+        }
+
+        if (isset($this->operation['additionalParameters'])) {
+            $definition[$this->operation['additionalParameters']['_cliname']] = new InputOption(
+                $this->operation['additionalParameters']['_cliname'],
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                $this->getInputDescription($this->operation['additionalParameters'], [ 'KEY=VALUE' ])
+            );
         }
 
         $laterArgs = [
@@ -135,6 +157,16 @@ class SchemaOperationCommand extends Command
         $args = [];
 
         $this->delveInputProperties($input, $this->operation['parameters'], $args);
+
+        if (isset($this->operation['additionalParameters'])) {
+            $this->delveInputProperties(
+                $input,
+                [
+                    $this->operation['additionalParameters']['_cliname'] => $this->operation['additionalParameters'],
+                ],
+                $args
+            );
+        }
 
         $result = call_user_func(
             [
