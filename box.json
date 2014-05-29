@@ -37,6 +37,10 @@
         },
         {
             "name": "*.php",
+            "in" : "vendor/guzzlehttp/log-subscriber/src"
+        },
+        {
+            "name": "*.php",
             "in" : "vendor/guzzlehttp/streams/src"
         },
         {
