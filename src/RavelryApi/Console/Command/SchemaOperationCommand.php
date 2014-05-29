@@ -27,9 +27,11 @@ class SchemaOperationCommand extends Command
         $definition = [];
 
         foreach ($properties as $parameterName => $parameter) {
+            $cliName = $context . str_replace('_', '-', $parameterName);
+
             if (('' == $context) && (in_array($parameterName, [ 'debug', 'extras' ]))) {
-                $definition[] = new InputOption(
-                    $parameterName,
+                $definition[$cliName] = new InputOption(
+                    $cliName,
                     null,
                     InputOption::VALUE_NONE,
                     isset($parameter['description']) ? $parameter['description'] : null
@@ -52,8 +54,8 @@ class SchemaOperationCommand extends Command
                     $suffix[] = 'file path';
                 }
 
-                $definition[] = new InputOption(
-                    $context . str_replace('_', '-', $parameterName),
+                $definition[$cliName] = new InputOption(
+                    $cliName,
                     null,
                     InputOption::VALUE_REQUIRED,
                     isset($parameter['description']) ? ($parameter['description'] . ($suffix ? (' [' . implode(', ', $suffix) . ']') : '')) : implode(', ', $suffix)
@@ -105,13 +107,23 @@ class SchemaOperationCommand extends Command
         $definition = [];
 
         if (isset($this->operation['parameters'])) {
-            $definition = array_merge(
-                $definition,
-                $this->delveDefinitionProperties($this->operation['parameters'])
-            );
+            $definition = $this->delveDefinitionProperties($this->operation['parameters']);
         }
 
-        $this->setDefinition($definition);
+        $laterArgs = [
+            'debug' => true,
+            'extras' => true,
+            'etag' => true,
+        ];
+
+        $this->setDefinition(
+            array_values(
+                array_merge(
+                    array_diff_key($definition, $laterArgs),
+                    array_intersect_key($definition, $laterArgs)
+                )
+            )
+        );
 
         if (isset($this->operation['description'])) {
             $this->setDescription($this->operation['description']);
