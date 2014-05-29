@@ -1,0 +1,51 @@
+{
+    "chmod": "0755",
+    "compression" : "BZ2",
+    "files": [
+        "LICENSE",
+        "vendor/dpb587/ravelry-api/src/RavelryApi/schema.json/",
+        "vendor/autoload.php"
+    ],
+    "finder": [
+        {
+            "name": "*.php",
+            "in": "src"
+        },
+        {
+            "name": "*.php",
+            "in" : "vendor/composer"
+        },
+        {
+            "name": "*.php",
+            "in" : "vendor/dpb587/ravelry-api/src"
+        },
+        {
+            "name": "*.php",
+            "in" : "vendor/guzzlehttp/command/src"
+        },
+        {
+            "name": "*.php",
+            "in" : "vendor/guzzlehttp/guzzle/src"
+        },
+        {
+            "name": "*.php",
+            "in" : "vendor/guzzlehttp/guzzle-services/src"
+        },
+        {
+            "name": "*.php",
+            "in" : "vendor/guzzlehttp/oauth-subscriber/src"
+        },
+        {
+            "name": "*.php",
+            "in" : "vendor/guzzlehttp/streams/src"
+        },
+        {
+            "name": "*.php",
+            "in" : "vendor/symfony/console"
+        }
+    ],
+    "main": "bin/cli",
+    "git-tag" : "@ravapicli-git-tag@",
+    "output": "ravelry-api.phar",
+    "stub": true
+}
