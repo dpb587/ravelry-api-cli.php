@@ -44,6 +44,7 @@ class SchemaOperationCommand extends Command
 
         foreach ($properties as $parameterName => $parameter) {
             $cliName = $context . str_replace('_', '-', $parameterName);
+            $parameterType = isset($parameter['_clitype']) ? $parameter['_clitype'] : (isset($parameter['type']) ? $parameter['type'] : null);
 
             if (('' == $context) && (in_array($parameterName, [ 'debug', 'extras' ]))) {
                 $definition[$cliName] = new InputOption(
@@ -54,10 +55,17 @@ class SchemaOperationCommand extends Command
                 );
             } elseif (!empty($parameter['static'])) {
                 continue;
-            } elseif ('object' == $parameter['type']) {
+            } elseif ('object' == $parameterType) {
                 $definition = array_merge(
                     $definition,
                     $this->delveDefinitionProperties($parameter['properties'], $parameterName . ':')
+                );
+            } elseif ('array' == $parameterType) {
+                $definition[$cliName] = new InputOption(
+                    $cliName,
+                    null,
+                    InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                    $this->getInputDescription($parameter)
                 );
             } else {
                 $definition[$cliName] = new InputOption(
@@ -75,13 +83,15 @@ class SchemaOperationCommand extends Command
     private function delveInputProperties(InputInterface $input, array $properties, array &$parsed, $context = '')
     {
         foreach ($properties as $parameterName => $parameter) {
+            $parameterType = isset($parameter['_clitype']) ? $parameter['_clitype'] : (isset($parameter['type']) ? $parameter['type'] : null);
+
             if (('' == $context) && (in_array($parameterName, [ 'debug', 'extras' ]))) {
                 if ($input->getOption($parameterName)) {
                     $parsed[$parameterName] = true;
                 }
             } elseif (!empty($parameter['static'])) {
                 continue;
-            } elseif ('object' == $parameter['type']) {
+            } elseif ('object' == $parameterType) {
                 $parsed[$parameterName] = [];
 
                 $this->delveInputProperties(
@@ -90,6 +100,16 @@ class SchemaOperationCommand extends Command
                     $parsed[$parameterName],
                     $context . $parameterName . ':'
                 );
+            } elseif ('array' == $parameterType) {
+                $parsed[$parameterName] = $input->getOption(str_replace('_', '-', $context . $parameterName));
+
+                if (isset($parameter['enum'])) {
+                    foreach ($parsed[$parameterName] as $enumCheck) {
+                        if (!in_array($enumCheck, $parameter['enum'])) {
+                            throw new \UnexpectedValueException('Parameter ' . $parameterName . ' only allows: ' . implode(', ', $parameter['enum']));
+                        }
+                    }
+                }
             } else {
                 $value = $input->getOption(str_replace('_', '-', $context . $parameterName));
 
@@ -101,14 +121,14 @@ class SchemaOperationCommand extends Command
                         $parsed[$vn] = $vk;
                     }
                 } elseif (null !== $value) {
-                    if ('integer' == $parameter['type']) {
+                    if ('integer' == $parameterType) {
                         $value = (int) $value;
-                    } elseif ('boolean' == $parameter['type']) {
+                    } elseif ('boolean' == $parameterType) {
                         $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
                     }
 
                     $parsed[$parameterName] = $value;
-                } elseif ($parameter['required']) {
+                } elseif (!empty($parameter['required'])) {
                     throw new \RuntimeException('The "--' . $context . $parameterName . '" option is required.');
                 }
             }
