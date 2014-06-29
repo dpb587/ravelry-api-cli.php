@@ -1,4 +1,4 @@
-A simple Ravelry API for the command line using [`dpb587/ravelry-api-php`](https://github.com/dpb587/ravelry-api-php).
+A simple CLI to the Ravelry API.
 
 Consider this a functional prototype. This CLI's API may change. Not all the API calls have been tested.
 
@@ -21,23 +21,22 @@ For development, it's easiest to install with [Composer](https://getcomposer.org
     ./bin/cli current-user
 
 
-## API Keys
+### Authentication
 
-You can configure API keys with environment variables or CLI options...
+You'll need to configure your API keys through environment variables or CLI options...
 
  * access key - `RAVELRY_ACCESS_KEY` or `--auth-access-key`
  * secret key - `RAVELRY_SECRET_KEY` or `--auth-secret-key`
  * personal key - `RAVELRY_PERSONAL_KEY` or `--auth-personal-key`
 
+You can find the your keys from the **apps** tab of your [Ravelry Pro](https://www.ravelry.com/pro) account.
 
-## OAuth
-
-There are two helper commands to make OAuth easier if you prefer to use that...
+If you're using OAuth instead of personal keys, there are two helper commands to make OAuth a bit easier...
 
  * `oauth:create` - use this to create an OAuth session
  * `oauth:confirm` - use this to finish authorizing the session if you get interrupted
 
-By default, the OAuth tokens will be saved to `~/.ravelryapi`.
+By default, the OAuth tokens will be saved to `~/.ravelryapi` in JSON format.
 
 
 ## Examples
@@ -69,7 +68,7 @@ API parameters are documented if you ask for `--help`...
      --query                Search term for fulltext searching yarns
      --page                 Result page to retrieve. Defaults to first page.
      --page-size            Defaults to 50 results per page.
-     --sort                 Sort order.
+     --sort                 Sort order. [allowed values: best, rating, projects]
      ...snip...
 
 API parameters are passed as options and the output, by default, is JSON...
@@ -166,7 +165,7 @@ You can increase the verbosity for more detailed logging...
 
 Use `--debug-mock {file}` to mock the server response of an API call.
 
-Use `--debug-log {file}` to log raw HTTP traffic and additional details to a separate file (appended).
+Use `--debug-log {file}` to append raw HTTP traffic and additional details to a separate file.
 
 
 ## License

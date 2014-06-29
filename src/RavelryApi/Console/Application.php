@@ -16,7 +16,7 @@ use RavelryApi\Authentication\BasicAuthentication;
 use RavelryApi\Authentication\OauthAuthentication;
 use RavelryApi\Authentication\OauthTokenStorage\FileTokenStorage;
 use RavelryApi\Client;
-use RavelryApi\Subscriber\DebugSubscriber;
+use RavelryApi\Subscriber\RavelryDebugSubscriber;
 use RuntimeException;
 
 class Application extends BaseApplication
