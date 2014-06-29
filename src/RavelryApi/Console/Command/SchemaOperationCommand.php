@@ -32,9 +32,13 @@ class SchemaOperationCommand extends Command
             $suffix[] = 'file path';
         }
 
+        if (isset($parameter['enum'])) {
+            $suffix[] = 'allowed values: ' . implode(', ', $parameter['enum']);
+        }
+
         return isset($parameter['description'])
-            ? ($parameter['description'] . ($suffix ? (' [' . implode(', ', $suffix) . ']') : ''))
-            : implode(', ', $suffix)
+            ? ($parameter['description'] . ($suffix ? (' [' . implode('; ', $suffix) . ']') : ''))
+            : implode('; ', $suffix)
             ;
     }
 
