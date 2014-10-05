@@ -1,4 +1,4 @@
-A simple CLI to the Ravelry API.
+A CLI for interacting with the [Ravelry API](http://www.ravelry.com/api).
 
 Consider this a functional prototype. This CLI's API may change. Not all the API calls have been tested.
 
@@ -7,16 +7,19 @@ Consider this a functional prototype. This CLI's API may change. Not all the API
 
 ## Getting Started
 
-It's easiest to download a pre-compiled [PHAR](http://php.net/phar) from the [releases](https://github.com/dpb587/ravelry-api-php-cli/releases) page...
 
-    wget -qO ravelry-api https://github.com/dpb587/ravelry-api-php-cli/releases/download/v0.0.0/ravelry-api.phar
+### Download
+
+It's easiest to download a pre-compiled [PHAR](http://php.net/phar) from the [releases](https://github.com/dpb587/ravelry-api-cli.php/releases) page...
+
+    wget -qO ravelry-api https://github.com/dpb587/ravelry-api-cli.php/releases/download/v0.0.0/ravelry-api-cli.phar
     chmod +x ravelry-api
     ./ravelry-api current-user
 
 For development, it's easiest to install with [Composer](https://getcomposer.org/)...
 
-    git clone https://github.com/dpb587/ravelry-api-php-cli
-    cd ravelry-api-php-cli
+    git clone https://github.com/dpb587/ravelry-api-cli.php
+    cd ravelry-api-cli.php
     composer.phar install
     ./bin/cli current-user
 
@@ -39,7 +42,7 @@ If you're using OAuth instead of personal keys, there are two helper commands to
 By default, the OAuth tokens will be saved to `~/.ravelryapi` in JSON format.
 
 
-## Examples
+### Usage
 
 API methods are segmented by topic...
 
@@ -62,13 +65,14 @@ API parameters are documented if you ask for `--help`...
 
     $ ./ravelry-api yarns:search --help
     Usage:
-     yarns:search [--query="..."] [--page="..."] [--page-size="..."] [--sort="..."] [--extras] [--etag="..."] [--debug]
+     yarns:search [--page="..."] [--page-size="..."] [--query="..."] [--sort="..."] [--facet="..."] [--debug] [--etag="..."] [--extras]
 
     Options:
      --query                Search term for fulltext searching yarns
      --page                 Result page to retrieve. Defaults to first page.
      --page-size            Defaults to 50 results per page.
      --sort                 Sort order. [allowed values: best, rating, projects]
+     --facet                Facet key/value pairs derived from ravelry.com interface [KEY=VALUE] (multiple values allowed)
      ...snip...
 
 API parameters are passed as options and the output, by default, is JSON...
@@ -88,79 +92,21 @@ API parameters are passed as options and the output, by default, is JSON...
                 "rating_total": 4153,
     ...snip...
 
-And now you should do cool things that somehow make your life easier. Like find the top-rated "cascade" yarns...
+If an API method supports arbitrary keys, you'll see a dedicated CLI option where you can use `KEY=VALUE` notation. For
+example, several `*:search` methods allow you to use the facets that the main Ravelry website exposes...
 
-    $ ./ravelry-api yarns:search --query 'cascade' --sort rating --page-size 5 \
-        | jq -r '( .paginator.results | tostring | "Top 5 of " + . + " results" ) , ( .yarns[] | " * " + .name + " (" + ( .rating_average | tostring ) + " stars) --> http://www.ravelry.com/yarns/library/" + .permalink )'
-    Top 5 of 273 results
-     * Cascade Petite (5 stars) --> http://www.ravelry.com/yarns/library/henrys-attic-cascade-petite
-     * Dolly (5 stars) --> http://www.ravelry.com/yarns/library/cascade-yarns-dolly
-     * Nantucket (5 stars) --> http://www.ravelry.com/yarns/library/cascade-nantucket
-     * Tudor (5 stars) --> http://www.ravelry.com/yarns/library/dive-tudor
-     * Colibri (5 stars) --> http://www.ravelry.com/yarns/library/bollicine-colibri
+    $ ./ravelry-api yarns:search --facet fiber=alpaca --facet weight=fingering ...snip...
 
-Or add yourself some stash and upload a photo along with it...
+If an API method accepts a file parameter, pass the file's path as the argument (or `-` to use `STDIN`)...
 
-    $ ./ravelry-api stash:create --username "$RAVELRY_USER" \
-        --handspun false \
-        --location 'Basement Closet' \
-        --notes 'Love this color!' \
-        --pack:color-family-id 2 \
-        --pack:colorway Carousel \
-        --pack:dye-lot B9 \
-        --pack:length-units yards \
-        --pack:purchased-date 2014-05-26 \
-        --pack:shop-id 3163 \
-        --pack:skein-length 384 \
-        --pack:skeins 2 \
-        --pack:total-length 768 \
-        --pack:weight-units grams \
-        --stash-status-id 1 \
-        --yarn-id 51846
-    {
-        "stash": {
-            ...snip...
-            "id": 10382615,
-            ...snip...
-        }
-    }
-
-    $ ./ravelry-api upload:request-token
-    {
-        "upload_token": "1978216-f19e7fe5a99ac4fba940d8c36c11c565"
-    }
-
-    $ ./ravelry-api upload:image --upload-token 1978216-f19e7fe5a99ac4fba940d8c36c11c565 \
-        --file0 ~/Desktop/c01c550d-ceaa-11d7-d871-6eff22837f68~v2-210x210.jpg
-    {
-        "uploads": {
-            "file0": {
-                "image_id": 29178529
-            }
-        }
-    }
-
-    $ ./ravelry-api stash:create-photo --username "$RAVELRY_USER" --id 10382615 --image-id 29178529
-    {
-        "status_token": "job:ac725746ebfdf29a03b3b62bb86e2da0:1401376888"
-    }
-
-    $ ./ravelry-api photos:status --status-token job:ac725746ebfdf29a03b3b62bb86e2da0:1401376888
-    {
-        "complete": true,
-        "progress": 100,
-        "failed": false,
-        "photo": {
-            ...snip...
-        }
-    }
+    $ ./ravelry-api upload:image --file0 ~/Desktop/my-stash.jpg ...snip...
 
 
 ## Debugging
 
 You can increase the verbosity for more detailed logging...
 
- * `-v` - to dump the full API result to `STDOUT` (not just the simple JSON data from the body)
+ * `-v` - to dump the full API result to `STDOUT` (not just the simple JSON data from the API response body)
  * `-vv` - to dump the raw HTTP traffic from requests and responses to `STDERR`
 
 Use `--debug-mock {file}` to mock the server response of an API call.

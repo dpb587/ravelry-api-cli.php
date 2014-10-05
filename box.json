@@ -3,7 +3,7 @@
     "compression" : "BZ2",
     "files": [
         "LICENSE",
-        "vendor/dpb587/ravelry-api/src/RavelryApi/schema.json/",
+        "vendor/dpb587/ravelry-api/src/RavelryApi/schema.json",
         "vendor/autoload.php"
     ],
     "finder": [
@@ -50,6 +50,6 @@
     ],
     "main": "bin/cli",
     "git-tag" : "@ravapicli-git-tag@",
-    "output": "ravelry-api.phar",
+    "output": "ravelry-api-cli.phar",
     "stub": true
 }

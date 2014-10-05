@@ -117,6 +117,10 @@ class SchemaOperationCommand extends Command
             } else {
                 $value = $input->getOption(str_replace('_', '-', $context . $parameterName));
 
+                if (('postFile' == $parameterType) && ('-' == $value)) {
+                    $value = 'php://stdin';
+                }
+
                 if (is_array($value)) {
                     // this assumes the only possible way to have an array is through the additionalParameters method
                     foreach ($value as $value2) {
